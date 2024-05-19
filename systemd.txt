@@ -1,0 +1,16 @@
+[Unit]
+Description=NCBCA Reference backend service
+After=syslog.target network.target
+
+[Service]
+SuccessExitStatus=143
+
+Type=simple
+
+
+WorkingDirectory=/home/ubuntu/ncbca-reference-backend
+ExecStart=/usr/bin/java -jar ncbca-reference.jar
+ExecStop=/bin/kill -15 $MAINPID
+
+[Install]
+WantedBy=multi-user.target
