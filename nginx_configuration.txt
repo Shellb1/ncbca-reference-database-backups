@@ -59,24 +59,45 @@ http {
 	include /etc/nginx/sites-enabled/*;
 
 server {
+    server_name ncbca-reference.com www.ncbca-reference.com;
 
-    listen 80;
-
-    server_name ec2-18-191-148-121.us-east-2.compute.amazonaws.com 18.191.148.121;
-
-
-	  root /var/www/ncbca-reference-frontend/browser;
-
+    root /var/www/ncbca-reference-frontend/browser;  # Path to your website files
     index index.html;
 
     location / {
-
-        try_files  $uri $uri/ /index.html;
-
-        # This will allow you to refresh page in your angular app. Which will not give error 404.
-
+        try_files $uri $uri/ /index.html;
+        # This will allow you to refresh the page in your Angular app without a 404 error.
     }
- location /ncbca-reference-backend/ {
+
+    location /ncbca-reference-backend/ {
+        proxy_pass http://localhost:5000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate /etc/letsencrypt/live/ncbca-reference.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/ncbca-reference.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+}
+
+server {
+    listen 80;
+    server_name ec2-3-144-5-35.us-east-2.compute.amazonaws.com 3.144.5.35;
+
+    root /var/www/ncbca-reference-frontend/browser;  # Path to your website files
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ /index.html;
+        # This will allow you to refresh the page in your Angular app without a 404 error.
+    }
+
+    location /ncbca-reference-backend/ {
         proxy_pass http://localhost:5000;
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
@@ -84,4 +105,19 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
-}
+
+
+
+
+server {
+    if ($host = ncbca-reference.com) {
+        return 301 https://$host$request_uri;
+    } # managed by Certbot
+
+
+    listen 80;
+    server_name ncbca-reference.com www.ncbca-reference.com;
+    return 404; # managed by Certbot
+
+
+}}
